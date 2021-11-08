@@ -91,7 +91,7 @@ export default {
   },
   watch: {
     lsearch: async function() {
-      this.licenses = await apps.searchLicenses(this.lsearch);
+      this.licenses = await apps.searchLicenses(this, this.$route.params.id, this.lsearch);
     }
   },
   async mounted() {
