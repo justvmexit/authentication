@@ -1,6 +1,7 @@
 <template>
     <center>
         <h1> View your apps  </h1>
+        <AppForm/>
         <table>
             <tr>
                 <th> Name </th>
@@ -20,12 +21,14 @@
 
 <script>
 import Status from '@/components/Status.vue'
+import AppForm from '@/components/AppForm.vue'
 import apps from '@/services/apps'
 
 export default {
   name: 'Apps',
   components: {
-    Status
+    Status,
+    AppForm
   },
   data() {
     return {

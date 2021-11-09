@@ -19,6 +19,31 @@ exports.getApps = (async (component) => {
     }
 });
 
+exports.createApp = (async (component, name) => {
+    const response = await fetch(`${process.env.VUE_APP_ENDPOINT}/backend/dashboard/api/v1/apps`, {
+        method: 'POST',
+        body: JSON.stringify({
+           name: name
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'authorization': component.$store.state.token
+        }
+    });
+    
+    const result = await response.json();
+
+    if(result.status == "success")
+    {
+        return result.app;
+    }
+    else
+    {
+        component.$toast.error(result.message);
+        return false;
+    }
+});
+
 exports.getApp = (async (component, id) => {
     const response = await fetch(`${process.env.VUE_APP_ENDPOINT}/backend/dashboard/api/v1/apps/${id}`, {
         headers: {
@@ -74,6 +99,32 @@ exports.searchVariables = (async (component, id, search) => {
     if(result.status == "success")
     {
         return result.variables;
+    }
+    else
+    {
+        component.$toast.error(result.message);
+        return false;
+    }
+});
+
+exports.updateFile = (async (component, id, file) => {
+    let formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${process.env.VUE_APP_ENDPOINT}/backend/dashboard/api/v1/apps/${id}/file`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'authorization': component.$store.state.token
+        }
+    });
+
+    const result = await response.json();
+
+    if(result.status == "success")
+    {
+        component.$toast.success(result.message);
+        return true;
     }
     else
     {

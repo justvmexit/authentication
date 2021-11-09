@@ -1,5 +1,5 @@
 <template>
-    <div class="form">
+    <div class="statusform">
         <div v-if="this.gstatus == 0" class="status success">
             <p> Undetected </p>
         </div>
@@ -51,7 +51,7 @@ export default {
         width: 100px;
     }
 
-    .form {
+    .statusform {
         padding: 10px;
         width: 330px;
         height: 225px;

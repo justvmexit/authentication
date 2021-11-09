@@ -41,7 +41,93 @@ module.exports = ((router, database) => {
         }
     });
 
-    router.get('/apps', (req, res) => {
+    router.post('/apps/:id/file', (req, res) => {
+        if (req.files.file)
+        {
+            if(req.headers.authorization)
+            {
+                database.query("SELECT * FROM users WHERE token = ?", [req.headers.authorization], (error, result, fields) => {
+                    if(error) throw error;
+
+                    if(result.length >= 1)
+                    {
+                        const user = result[0];
+                        database.query("SELECT * FROM apps WHERE owner = ? AND id = ?", [user.id, req.params.id], (error, result, fields) => {
+                            if(error)
+                            {
+                                throw error;
+
+                                res.status(500).json({
+                                    status: "failure",
+                                    message: "Internal server error"
+                                });
+                            }
+                            
+                            if(result.length >= 1)
+                            {
+                                const app = result[0];
+
+                                const file = req.files.file;
+                                const id = uuid.v4();
+
+                                file.mv(`./modules/${id}`, (error) => {
+                                    if(error) throw error;
+
+                                    const app = uuid.v4();
+                                    database.query("UPDATE apps SET file = ? WHERE id = ?", [id, app.id], (error, result, fields) => {
+                                        if(error)
+                                        {
+                                            throw error;
+            
+                                            res.status(500).json({
+                                                status: "failure",
+                                                message: "Internal server error"
+                                            });
+                                        }
+
+                                        res.status(200).json({
+                                            status: "success",
+                                            message: "Updated file for streaming"
+                                        });
+                                    });
+                                });
+                            }
+                            else
+                            {
+                                res.status(404).json({
+                                    status: "failure",
+                                    message: "App doesn't seem to exist"
+                                });
+                            }
+                        });
+                    }
+                    else
+                    {
+                        res.status(403).json({
+                            status: "failure",
+                            message: "Invalid authentication token"
+                        });
+                    }
+                });
+            }
+            else
+            {
+                res.status(400).json({
+                    status: "failure",
+                    message: "Please provide authentication header."
+                });
+            }
+        }
+        else
+        {
+            res.status(400).json({
+                status: "failure",
+                message: "Bad Request"
+            });
+        }
+    });
+
+    router.route('/apps').get((req, res) => {
         if(req.headers.authorization)
         {
             database.query("SELECT * FROM users WHERE token = ?", [req.headers.authorization], (error, result, fields) => {
@@ -79,6 +165,81 @@ module.exports = ((router, database) => {
             res.status(400).json({
                 status: "failure",
                 message: "Please provide authentication header."
+            });
+        }
+    }).post((req, res) => {
+        if(req.body.name)
+        {
+            if(req.headers.authorization)
+            {
+                database.query("SELECT * FROM users WHERE token = ?", [req.headers.authorization], (error, result, fields) => {
+                    if(error) throw error;
+
+                    if(result.length >= 1)
+                    {
+                        const user = result[0];
+                        database.query("SELECT * FROM apps WHERE owner = ? AND name = ?", [user.id, req.body.name], (error, result, fields) => {
+                            if(error)
+                            {
+                                throw error;
+
+                                res.status(500).json({
+                                    status: "failure",
+                                    message: "Internal server error"
+                                });
+                            }
+                            
+                            if(result.length == 0)
+                            {
+                                const app = uuid.v4();
+                                database.query("INSERT INTO apps(id, name, owner, version, status) VALUES(?, ?, ?, ?, ?)", [app, req.body.name, user.id, "1.0", 0], (error, result, fields) => {
+                                    if(error)
+                                    {
+                                        throw error;
+        
+                                        res.status(500).json({
+                                            status: "failure",
+                                            message: "Internal server error"
+                                        });
+                                    }
+
+                                    res.status(200).json({
+                                        status: "success",
+                                        app: app
+                                    });
+                                });
+                            }
+                            else
+                            {
+                                res.status(404).json({
+                                    status: "failure",
+                                    message: "App already exists"
+                                });
+                            }
+                        });
+                    }
+                    else
+                    {
+                        res.status(403).json({
+                            status: "failure",
+                            message: "Invalid authentication token"
+                        });
+                    }
+                });
+            }
+            else
+            {
+                res.status(400).json({
+                    status: "failure",
+                    message: "Please provide authentication header."
+                });
+            }
+        }
+        else
+        {
+            res.status(400).json({
+                status: "failure",
+                message: "Please provide name and content request."
             });
         }
     });
@@ -760,7 +921,7 @@ module.exports = ((router, database) => {
 
                                 if(result.length >= 1)
                                 {
-                                    database.query("UPDATE licenses SET hwid = ? WHERE id = ?", ['', req.params.lid], (error, result, fields) => {
+                                    database.query("UPDATE licenses SET hwid = ? WHERE id = ?", [null, req.params.lid], (error, result, fields) => {
                                         if(error)
                                         {
                                             throw error;

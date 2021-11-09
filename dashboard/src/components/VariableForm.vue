@@ -1,5 +1,5 @@
 <template>
-    <div class="form">
+    <div class="variableform">
         <h4> Create variable </h4>
         <input class="input" placeholder="Name of variable" v-model="this.name"/>
         <input class="input" placeholder="Content of variable" v-model="this.content"/>
@@ -30,7 +30,7 @@ export default {
 </script>
 
 <style scoped>
-    .form {
+    .variableform {
         padding: 10px;
         width: 330px;
         height: 265px;

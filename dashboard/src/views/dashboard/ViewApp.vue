@@ -27,7 +27,8 @@
                 <td v-if="license.expiry"> {{ license.expiry }} </td>
                 <td v-else> Not set </td>
                 <td> {{ license.duration }} </td>
-                <td> <button @click="resetHWID(license.id)" class="btn danger"> Reset </button> </td>
+                <td v-if="!license.expiry"> Not set </td>
+                <td v-else> <button @click="resetHWID(license.id)" class="btn danger"> Reset </button> </td>
                 <td> <button @click="deleteLicense(license.id)" class="btn danger"> Delete </button> </td>
               </tr>
             </table>
@@ -35,6 +36,12 @@
         </div>
         <div v-if="this.tab == 1">
           <h2> Streaming </h2>
+          <center>
+            <div class="form">
+              <input class="input" type="file" @change="onFileChange" />
+              <button @click="onUploadFile" class="btn primary upload" :disabled="!this.selectedFile">Upload file</button>
+            </div>
+          </center>
         </div>
         <div v-if="this.tab == 2">
           <center>
@@ -86,7 +93,8 @@ export default {
       licenses: [],
       tab: 0,
       lsearch: "",
-      vsearch: ""
+      vsearch: "",
+      selectedFile: ""
     }
   },
   watch: {
@@ -101,12 +109,25 @@ export default {
     this.licenses = await apps.getLicenses(this, this.$route.params.id);
 
     setInterval(async function() {
-      this.app = await apps.getApp(this, this.$route.params.id);
-      this.variables = await apps.getVariables(this, this.$route.params.id);
+      if(this.$route.params.id.length == 36)
+      {
+        this.app = await apps.getApp(this, this.$route.params.id);
+        this.variables = await apps.getVariables(this, this.$route.params.id);
+      }
     }.bind(this), 10000);
 
     setInterval(async function() {
-      this.licenses = await apps.getLicenses(this, this.$route.params.id);
+      if(this.$route.params.id.length == 36)
+      {
+        if(this.lsearch.length <= 0)
+        {
+          this.licenses = await apps.getLicenses(this, this.$route.params.id);
+        }
+        else
+        {
+          this.licenses = await apps.searchLicenses(this, this.$route.params.id, this.lsearch);
+        }
+      }
     }.bind(this), 5000);
 
     if(this.$store.state.loggedIn != true)
@@ -115,6 +136,13 @@ export default {
     }
   },
   methods: {
+    onFileChange(e) {
+      const selectedFile = e.target.files[0]; // accessing file
+      this.selectedFile = selectedFile;
+    },
+    async onUploadFile() {
+      await apps.updateFile(this, this.$route.params.id, this.selectedFile);
+    },
     async deleteVariable(id) {
       await apps.deleteVariable(this, this.app.id, id);
       this.variables = await apps.getVariables(this, this.$route.params.id);
@@ -149,6 +177,11 @@ export default {
     width: 130px;
   }
   
+  .upload {
+    border: 0; 
+    width: 100%;
+  }
+
   .card {
     padding: 20px;
     width: 300px;
@@ -165,5 +198,14 @@ export default {
     border-radius: 8px;
     font-size: 14px;
   }
+
+  .form {
+        padding: 10px;
+        width: 330px;
+        height: 125px;
+        border-radius: 8px;
+        background-color: #0a0f17;
+        display: block;
+    }
   
 </style>
