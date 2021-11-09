@@ -28,6 +28,11 @@ const routes = [
     component: () => import('../views/dashboard/Apps.vue')
   },
   {
+    path: '/dashboard/settings',
+    name: 'Settings',
+    component: () => import('../views/dashboard/Settings.vue')
+  },
+  {
     path: '/dashboard/apps/:id',
     name: 'ViewApp',
     component: () => import('../views/dashboard/ViewApp.vue')

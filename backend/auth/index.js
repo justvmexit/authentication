@@ -47,6 +47,87 @@ module.exports = ((router, database) => {
         }
     });
 
+    router.post('/change_password', (req, res) => {
+        if(req.headers.authorization)
+        {
+            database.query("SELECT * FROM users WHERE token = ?", [req.headers.authorization], (error, result, fields) => {
+                if(error) throw error;
+
+                if(result.length >= 1)
+                {
+                    const user = result[0];
+                    if(req.body.password && req.body.new_password)
+                    {
+                        database.query("SELECT * FROM users WHERE id = ?", [user.id], (error, result, fields) => {
+                            if(error) throw error;
+
+                            if(result.length >= 1)
+                            {
+                                const user = result[0];
+
+                                const passwordValid = bcrypt.compareSync(req.body.password, user.password);
+                                if(passwordValid)
+                                {
+                                    const new_token = crypto.randomBytes(64).toString('hex');
+
+                                    bcrypt.hash(req.body.new_password, 12, (error, data) => {
+                                        if(error) throw error;
+
+                                        console.log(data)
+                                        database.query("UPDATE users SET password = ?, token = ? WHERE id = ?", [data.toString(), new_token, user.id], (error, result, fields) => {
+                                            if(error) throw error;
+
+                                            res.status(200).json({
+                                                status: "success",
+                                                message: "Successfully changed password",
+                                                token: new_token
+                                            });
+                                        });
+                                    });
+                                }
+                                else
+                                {
+                                    res.status(403).json({
+                                        status: "failure",
+                                        message: "Those credentials don't match our records."
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                res.status(403).json({
+                                    status: "failure",
+                                    message: "Those credentials don't match our records."
+                                });
+                            }
+                        });
+                    }
+                    else
+                    {
+                        res.status(400).json({
+                            status: "failure",
+                            message: "Invalid parameters provided."
+                        });
+                    }
+                }
+                else
+                {
+                    res.status(403).json({
+                        status: "failure",
+                        message: "Invalid authentication token"
+                    });
+                }
+            });
+        }
+        else
+        {
+            res.status(400).json({
+                status: "failure",
+                message: "Please provide authentication header."
+            });
+        }
+    });
+
     router.post('/register', (req, res) => {
         if(req.body.username && req.body.password)
         {
