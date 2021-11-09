@@ -1,7 +1,7 @@
 const uuid = require('uuid');
 
 module.exports = ((router, database, config) => {
-    router.get('/api/v1/module', (req, res) => {
+    router.get('/module', (req, res) => {
         if(req.query.token)
         {
             database.query("SELECT * FROM sessions WHERE token = ?", [req.query.token], (error, result, fields) => {
@@ -17,38 +17,50 @@ module.exports = ((router, database, config) => {
                         {
                             const app = result[0];
 
-                            let key = 0;
-                            for(let iterator = 0; iterator < result[0].license.length; iterator++)
+                            if(app.file != null && require('fs').existsSync(`./modules/${app.file}`))
                             {
-                                key += result[0].license.charCodeAt(iterator) // xor for life baby
+                                let key = 0;
+                                for(let iterator = 0; iterator < session.license.length; iterator++)
+                                {
+                                    key += session.license.charCodeAt(iterator) // xor for life baby
+                                }
+
+                                var image_data = require('fs').readFileSync(`./modules/${app.file}`);
+                                var new_image = []
+
+                                for(let i = 0; i < image_data.length; i++)
+                                {
+                                    new_image[i] = image_data[i] ^ key;
+                                }
+
+                                database.query("DELETE FROM sessions WHERE id = ?", [session.id], (error, result, fields) => {
+                                    if(error) throw error;
+
+                                    console.log(result)
+
+                                    if(result.affectedRows >= 1)
+                                    {
+                                        res.status(200).json({
+                                            status: "success",
+                                            image: new_image
+                                        });
+                                    }
+                                    else
+                                    {
+                                        res.status(500).json({
+                                            status: "failure",
+                                            message: "Internal server error"
+                                        });
+                                    }
+                                });
                             }
-
-                            var image_data = require('fs').readFileSync(`./modules/${app.file}`);
-                            var new_image = []
-
-                            for(let i = 0; i < image_data.length; i++)
+                            else
                             {
-                                new_image[i] = image_data[i] ^ key;
+                                res.status(400).json({
+                                    status: "failure",
+                                    message: "No file associated with app."
+                                });
                             }
-
-                            database.query("DELETE FROM sessions WHERE id = ?", [result[0].id], (error, result, fields) => {
-                                if(error) throw error;
-
-                                if(result.affectedRows >= 1)
-                                {
-                                    res.status(200).json({
-                                        status: "success",
-                                        image: new_image
-                                    });
-                                }
-                                else
-                                {
-                                    res.status(500).json({
-                                        status: "failure",
-                                        message: "Internal server error"
-                                    });
-                                }
-                            });
                         }
                         else
                         {
@@ -77,7 +89,7 @@ module.exports = ((router, database, config) => {
         }
     });
 
-    router.post('/api/v1/authenticate', (req, res) => {
+    router.post('/authenticate', (req, res) => {
       if(req.body.license && req.body.token)
       {
         database.query("SELECT * FROM licenses WHERE license = ?", [req.body.license], (error, result, fields) => {
@@ -123,7 +135,7 @@ module.exports = ((router, database, config) => {
                         if(current_date <= new Date(license.expiry))
                         {
                             const token = require('crypto').randomBytes(64).toString('hex');
-                            database.query("INSERT INTO sessions (id, license, token) VALUES(?, ?, ?)", [uuid.v4(), req.body.license, token], (error, sessionResult, fields) => {
+                            database.query("INSERT INTO sessions (id, license, app, token) VALUES(?, ?, ?, ?)", [uuid.v4(), req.body.license, license.app, token], (error, sessionResult, fields) => {
                                 if(error) throw error;
 
                                 if(sessionResult.affectedRows >= 1)
@@ -133,6 +145,8 @@ module.exports = ((router, database, config) => {
 
                                         if(result.length >= 1)
                                         {
+                                            const app = result[0];
+
                                             res.status(200).json({
                                                 status: "success",
                                                 license: license,

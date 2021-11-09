@@ -73,7 +73,6 @@ module.exports = ((router, database) => {
                                 file.mv(`./modules/${id}`, (error) => {
                                     if(error) throw error;
 
-                                    const app = uuid.v4();
                                     database.query("UPDATE apps SET file = ? WHERE id = ?", [id, app.id], (error, result, fields) => {
                                         if(error)
                                         {
