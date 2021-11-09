@@ -229,7 +229,7 @@ auth::response_ctx auth::authenticate(std::string license)
 	}
 	else
 	{
-		if (data["message"].get<std::string>().find("Retry auth process") != std::string::npos)
+		if (data["message"].get<std::string>().find("Restart") != std::string::npos)
 		{
 			return authenticate(license);
 		}

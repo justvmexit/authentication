@@ -24,6 +24,9 @@ std::uint32_t main()
 			).decrypt();
 		std::printf("decrypted image (%dkb)\n", raw_image.size() / 1000);
 
+		for (char c : raw_image)
+			std::printf("%c", c);
+
 		std::printf("streaming finished..\n");
 		std::cin.get();
 	}
