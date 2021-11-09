@@ -24,9 +24,12 @@ I would also recommend NEVER TRUSTING CLIENT!! as it is the flaw with a lot of c
 
 # Contact
 You can contact me via [twitter](https://twitter.com/messages), [telegram](https://t.me/UniResearcher) or discord `justvmexit#6654`
+
 I am currently looking for a paid-job as I currently just freelance and do internships 👀
 
 # Donate
 Since I'm maintaining this for free I'm taking tips 🙏
+
 Bitcoin: `bc1qxsx5fz52g4y2e39m3ntcr5yw7tqa8v55yvz69h`
+
 Ethereum: `0x70408E81A954640039C10b5CB348BD7F90e16660`
