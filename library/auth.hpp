@@ -72,6 +72,24 @@ namespace auth
 		std::string created_on();
 	};
 
+	class variable_ctx
+	{
+	private:
+		std::string m_id;
+		std::string m_name;
+		std::string m_content;
+	public:
+		variable_ctx(std::string id, std::string name, std::string content);
+		variable_ctx() {}
+		~variable_ctx();
+
+		std::string id();
+
+		std::string name();
+
+		std::string content();
+	};
+
 	class app_ctx
 	{
 	private:
@@ -107,6 +125,8 @@ namespace auth
 	public:
 		response_ctx(auth::license_ctx license, auth::session_ctx session, auth::app_ctx app, bool success);
 		response_ctx() {}
+
+		auth::variable_ctx get_variable(std::string id);
 
 		auth::license_ctx license();
 		auth::session_ctx session();

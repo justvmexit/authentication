@@ -19,6 +19,39 @@ auth::app_ctx::~app_ctx()
 	this->m_created_on.clear();
 }
 
+auth::variable_ctx auth::response_ctx::get_variable(std::string id)
+{
+	std::string response;
+
+	CURL* curl = curl_easy_init();
+
+	if (curl)
+	{
+
+		char* url = reinterpret_cast<char*>(malloc(255));
+		sprintf(url, "%s/backend/client/api/v1/variables/%s?license=%s", ENDPOINT, id.c_str(), this->m_license.license().c_str());
+
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+	
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+
+		CURLcode res = curl_easy_perform(curl);
+		curl_easy_cleanup(curl);
+	}
+
+	nlohmann::json data = nlohmann::json::parse(response);
+
+	if (data["status"] == "success")
+	{
+		return auth::variable_ctx(id, data["variable"]["name"], data["variable"]["content"]);
+	}
+
+	return auth::variable_ctx();
+}
+
 auth::status_e auth::app_ctx::status()
 {
 	return this->m_status;
@@ -269,4 +302,33 @@ auth::app_ctx auth::response_ctx::app()
 bool auth::response_ctx::succeeded()
 {
 	return this->m_success;
+}
+
+auth::variable_ctx::variable_ctx(std::string id, std::string name, std::string content)
+{
+	this->m_id = id;
+	this->m_name = name;
+	this->m_content = content;
+}
+
+auth::variable_ctx::~variable_ctx()
+{
+	this->m_id.clear();
+	this->m_name.clear();
+	this->m_content.clear();
+}
+
+std::string auth::variable_ctx::id()
+{
+	return this->m_id;
+}
+
+std::string auth::variable_ctx::name()
+{
+	return this->m_name;
+}
+
+std::string auth::variable_ctx::content()
+{
+	return this->m_content;
 }

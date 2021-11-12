@@ -1,7 +1,6 @@
 #include <Windows.h>
 #include <iostream>
 #include <vector>
-
 #define ENDPOINT "http://localhost:4000"
 #define CURL_STATICLIB 
 
@@ -54,7 +53,7 @@ namespace auth
 		std::string m_created_on;
 		std::uint32_t m_duration;
 	public:
-		license_ctx(std::string id, std::string license, std::string hwid, std::string created_on, std::uint32_t duration);
+		license_ctx(std::string id, std::string license, std::string hwid, std::string expiry, std::string created_on, std::uint32_t duration);
 		license_ctx() {}
 
 		std::uint32_t deriveKey();
@@ -72,12 +71,30 @@ namespace auth
 		std::string created_on();
 	};
 
+	class variable_ctx
+	{
+	private:
+		std::string m_id;
+		std::string m_name;
+		std::string m_content;
+	public:
+		variable_ctx(std::string id, std::string name, std::string content);
+		variable_ctx() {}
+		~variable_ctx();
+
+		std::string id();
+
+		std::string name();
+
+		std::string content();
+	};
+
 	class app_ctx
 	{
 	private:
 		std::string m_id;
 		std::string m_name;
-		std::string m_version; 
+		std::string m_version;
 		std::string m_created_on;
 		auth::status_e m_status;
 	public:
@@ -107,6 +124,8 @@ namespace auth
 	public:
 		response_ctx(auth::license_ctx license, auth::session_ctx session, auth::app_ctx app, bool success);
 		response_ctx() {}
+
+		auth::variable_ctx get_variable(std::string id);
 
 		auth::license_ctx license();
 		auth::session_ctx session();

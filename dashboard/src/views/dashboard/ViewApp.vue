@@ -23,7 +23,7 @@
                 <th> Action </th>
               </tr>
               <tr v-for="license in this.licenses" :key="license.id">
-                <td> {{ license.license }} </td>
+                <td @click="copy(license.license)"> {{ license.license }} </td>
                 <td v-if="license.expiry"> {{ license.expiry }} </td>
                 <td v-else> Not set </td>
                 <td> {{ license.duration }} </td>
@@ -48,15 +48,15 @@
             <VariableForm :app="this.app"/>
             <table>
               <tr>
+                <th> Id </th>
                 <th> Name </th>
                 <th> Content </th>
-                <th> Created on </th>
                 <th> Action </th>
               </tr>
               <tr v-for="variable in this.variables" :key="variable.id">
+                <td @click="copy(variable.id)"> {{ variable.id }} </td>
                 <td> {{ variable.name }} </td>
                 <td> {{ variable.content }} </td>
-                <td> {{ variable.created_on }} </td>
                 <td> <button @click="deleteVariable(variable.id)" class="btn danger"> Delete </button> </td>
               </tr>
             </table>
@@ -139,6 +139,10 @@ export default {
     onFileChange(e) {
       const selectedFile = e.target.files[0]; // accessing file
       this.selectedFile = selectedFile;
+    },
+    copy(text) {
+      navigator.clipboard.writeText(text);
+      this.$toast.success("Copied to clipboard")
     },
     async onUploadFile() {
       await apps.updateFile(this, this.$route.params.id, this.selectedFile);

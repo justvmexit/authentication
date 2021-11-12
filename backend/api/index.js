@@ -97,7 +97,7 @@ module.exports = ((router, database, config) => {
 
             if(result.length >= 1)
             {
-                var license = result[0];
+                const license = result[0];
 
                 if(!license.hwid || license.hwid == "")
                 {
@@ -173,7 +173,7 @@ module.exports = ((router, database, config) => {
                         }
                         else
                         {
-                            res.status(400).json({
+                            res.status(401).json({
                                 status: "failure",
                                 message: "That license has been expired."
                             });
@@ -182,7 +182,7 @@ module.exports = ((router, database, config) => {
                 }
                 else
                 {
-                    res.status(404).json({
+                    res.status(401).json({
                         status: "failure",
                         message: "The hardware id doesn't match."
                     });
@@ -204,5 +204,65 @@ module.exports = ((router, database, config) => {
             message: "Internal client error"
         });
       }
-    })
+    });
+
+    router.get('/variables/:id', (req, res) => {
+        if(req.query.license)
+        {
+          database.query("SELECT * FROM licenses WHERE license = ?", [req.query.license], (error, result, fields) => {
+              if(error) throw error;
+  
+              if(result.length >= 1)
+              {
+                  const license = result[0];
+                  const current_date = new Date();
+                  if(current_date <= new Date(license.expiry))
+                  {
+                      database.query("SELECT * FROM variables WHERE id = ? AND app = ?", [req.params.id, license.app], (error, result, fields) => {
+                        if(error) throw error;
+
+                        if(result.length >= 1)
+                        {
+                            res.status(200).json({
+                                status: "success",
+                                variable: {
+                                    name: result[0].name,
+                                    content: result[0].content
+                                }
+                            });
+                        }
+                        else
+                        {
+                            res.status(404).json({
+                                status: "failure",
+                                message: "Variable doesn't seem to exist"
+                            });
+                        }
+                      });
+                  }
+                  else
+                  {
+                    res.status(401).json({
+                        status: "failure",
+                        message: "This license has expired."
+                    })
+                  }
+              }
+              else
+              {
+                  res.status(404).json({
+                      status: "failure",
+                      message: "That license doesn't seem exist"
+                  })
+              }
+            });
+        }
+        else
+        {
+            res.status(400).json({
+                status: "failure",
+                message: "Internal client error"
+            });
+        }
+    });
 });

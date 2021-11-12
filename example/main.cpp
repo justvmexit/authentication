@@ -13,6 +13,9 @@ std::uint32_t main()
 	{
 		std::printf("welcome back!\nlicenses expiry: %s\n", response.license().expiry().c_str());
 
+		auth::variable_ctx variable = response.get_variable("5a6d6f87-e5d6-4dbc-bff9-404d3f8edf3b");
+		std::printf("variable: %s = %s\n", variable.name().c_str(), variable.content().c_str());
+
 		std::printf("preparing streaming procedure\n");
 		auth::session_ctx session = response.session();
 		std::printf("streaming image..\n");
